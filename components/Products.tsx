@@ -15,10 +15,11 @@ export default function Products({ submitTarget, enabled }: Props) {
     console.log("Diğer değerleri sıfırla"); // Sadece test için
   };
 
+    // className="grid grid-cols-3 gap-8" burası ürünlerin yan yana kaç adet geleceğini belirlediğimiz yer
   return (
     <form method='get' action={submitTarget} ref={formRef}>
       <div className='flex flex-col gap-16'>
-        <div className="grid grid-cols-3 gap-8">
+        <div className="grid grid-cols-3 gap-8"> 
           {products.map((product, index) => {
             return (
               <div className="rounded-md bg-white text-left p-8" key={product.id}>
