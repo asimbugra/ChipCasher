@@ -8,3 +8,75 @@ input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+body {
+  font-family: Arial, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
+}
+/*---------container-------*/
+/* .rounded-md.bg-white.text-left.p-8 {
+  width: 400px; 
+  height: 300px; 
+  margin: 0 auto; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+} */
+.DarkModeSwitch{
+  position: absolute;
+  top: 50px; /* Sağ üst köşeden 16px aşağıda */
+  right: 50px; /* Sağ üst köşeden 16px solda */
+}
+
+/* Genel stiller */
+body {
+  font-family: Arial, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
+}
+.SiteHeading {
+  text-align: center;
+}
+.wallet-button {
+  position: absolute;
+  top: 20px; /* Sağ üst köşeden ne kadar aşağıda olmasını istiyorsanız burayı ayarlayabilirsiniz */
+  right: 20px; /* Sağ üst köşeden ne kadar sola olmasını istiyorsanız burayı ayarlayabilirsiniz */
+}
+
+
+
+/* Normal (Açık) Mod */
+body.light-mode {
+  background-color: #fff; /* Açık arka plan rengi */
+  color: #333; /* Açık metin rengi */
+}
+/* Karanlık Mod */
+body.dark-mode {
+  background-color: #000; /* Siyah arka plan rengi */
+  color: #db0edb; /* Mor metin rengi */
+  border-color: #cf5605; /* Turuncu kenar rengi */
+  transition: color 0.4s; /* Metin rengi geçiş süresi */
+}
+
+
+/* Mobil Cihazlar İçin */
+@media screen and (max-width: 640px) {
+  /* .rounded-md.bg-white.text-left.p-8 {
+    margin-right: 0; 
+    width: 100%; 
+  } */
+  /* .DarkModeSwitch{
+    top: 50px; 
+    left: 500px; 
+  } */
+  
+  /* Ürün Kartı */
+/* .rounded-md.bg-white.text-left.p-8 {
+  
+  margin-bottom: 16px; 
+} */
+/* .SiteHeading {
+  text-align: center;
+} */
+
+}
+
