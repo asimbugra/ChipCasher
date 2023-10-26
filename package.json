@@ -7,6 +7,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "@babel/helper-define-polyfill-provider": "^0.4.3",
+    "@babel/plugin-transform-runtime": "^7.23.2",
+    "@babel/preset-env": "^7.23.2",
+    "@babel/traverse": "^7.23.2",
     "@solana/pay": "^0.2.0",
     "@solana/spl-token": "^0.3.8",
     "@solana/wallet-adapter-base": "^0.9.23",
@@ -15,15 +19,22 @@
     "@solana/wallet-adapter-wallets": "^0.19.23",
     "@solana/web3.js": "^1.87.1",
     "@tailwindcss/forms": "^0.5.0",
+    "babel-plugin-polyfill-corejs2": "^0.4.6",
+    "babel-plugin-polyfill-corejs3": "^0.8.5",
+    "babel-plugin-polyfill-es-shims": "^0.10.0",
+    "babel-plugin-polyfill-regenerator": "^0.5.3",
     "bignumber.js": "^9.0.2",
+    "fs": "^0.0.1-security",
     "next": "latest",
     "react": "^17.0.2",
     "react-circular-progressbar": "^2.1.0",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-toggle-dark-mode": "^1.1.1"
   },
   "devDependencies": {
     "@types/node": "17.0.4",
     "@types/react": "17.0.38",
+    "@types/react-dom": "^18.2.13",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.5",
     "prettier": "^2.5.1",
