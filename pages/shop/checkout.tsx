@@ -45,7 +45,7 @@ export default function Checkout() {
     const apiUrl = `${location.protocol}//${location.host}/api/makeTransaction?${searchParams.toString()}`
     const urlParams: TransactionRequestURLFields = {
       link: new URL(apiUrl),
-      label: "Cookies Inc",
+      label: "ChipCasher",
       message: "Thanks for your order! 🛍️",
     }
     const solanaUrl = encodeURL(urlParams)
