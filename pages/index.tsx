@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import Products from '../components/Products';
 import SiteHeading from '../components/SiteHeading';
-import { DarkModeSwitch } from 'react-toggle-dark-mode';
+
+// Dinamik olarak istemci tarafında yükleme
+const WalletMultiButtonDynamic = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
+  { ssr: false }
+);
+
+const DarkModeSwitchDynamic = dynamic(
+  () => import('react-toggle-dark-mode').then(mod => mod.DarkModeSwitch),
+  { ssr: false }
+);
 
 const HomePage = () => {
   const { publicKey } = useWallet();
@@ -11,30 +21,30 @@ const HomePage = () => {
 
   const toggleDarkMode = (checked: boolean) => {
     setDarkMode(checked);
-
-    // Karanlık moda geçiş yaparken sitenizin tasarımını güncelleyebilirsiniz
+    // Dark mode state değiştiğinde class ekleme/çıkarma işlemi
     document.body.classList.toggle("dark-mode", checked);
   };
 
+  useEffect(() => {
+    // Sayfa yüklendiğinde başlangıçta dark mode durumunu kontrol et ve güncelle
+    document.body.classList.toggle("dark-mode", isDarkMode);
+  }, []); // Boş bağımlılık dizisiyle sadece bileşen ilk yüklendiğinde çalışır
+
   return (
     <div className="flex flex-col gap-8 max-w-4xl items-stretch m-auto pt-24">
-      <div className="DarkModeSwitch">
-          <DarkModeSwitch
-            checked={isDarkMode}
-            onChange={toggleDarkMode}
-            size={40}
-          />
-        </div>
+      {/* <div className="DarkModeSwitch">
+        <DarkModeSwitchDynamic
+          checked={isDarkMode}
+          onChange={toggleDarkMode}
+          size={40}
+        />
+      </div> */}
       <div className="flex justify-between items-center">
-        
-        <SiteHeading >ChipCasher</SiteHeading>
-        
+        <SiteHeading>ChipCasher</SiteHeading>
       </div>
-
       <div className="basis-1/4">
-        <WalletMultiButton className="!bg-gray-900 hover:scale-105" />
+        <WalletMultiButtonDynamic className="!bg-gray-900 hover:scale-105" />
       </div>
-
       <Products submitTarget="/checkout" enabled={publicKey !== null} />
     </div>
   );

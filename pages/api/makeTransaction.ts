@@ -1,135 +1,167 @@
-import { createTransferCheckedInstruction, getAssociatedTokenAddress, getMint } from "@solana/spl-token"
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
-import { clusterApiUrl, Connection, PublicKey, Transaction } from "@solana/web3.js"
-import { NextApiRequest, NextApiResponse } from "next"
-import { shopAddress, usdcAddress } from "../../lib/addresses"
-import calculatePrice from "../../lib/calculatePrice"
+import { createTransferCheckedInstruction, getAssociatedTokenAddress, getMint } from "@solana/spl-token";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { clusterApiUrl, Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { NextApiRequest, NextApiResponse } from "next";
+import { shopAddress, usdcAddress } from "../../lib/addresses"; // Ensure these are correctly defined
+import calculatePrice from "../../lib/calculatePrice"; // Ensure this utility function is correctly defined
 
 export type MakeTransactionInputData = {
-  account: string,
-}
-
-type MakeTransactionGetResponse = {
-  label: string,
-  icon: string,
-}
+  account: string;
+};
 
 export type MakeTransactionOutputData = {
-  transaction: string,
-  message: string,
-}
+  transaction: string;
+  message: string;
+};
 
 type ErrorOutput = {
-  error: string
-}
+  error: string;
+};
 
-function get(res: NextApiResponse<MakeTransactionGetResponse>) {
+// Helper function to handle GET requests
+function get(res: NextApiResponse) {
   res.status(200).json({
     label: "ChipCasher",
     icon: "https://freesvg.org/plastic-water-bottle",
-  })
+  });
 }
 
-async function post(
-  req: NextApiRequest,
-  res: NextApiResponse<MakeTransactionOutputData | ErrorOutput>
-) {
+// Helper function to handle POST requests
+async function post(req: NextApiRequest, res: NextApiResponse<MakeTransactionOutputData | ErrorOutput>) {
   try {
-    // We pass the selected items in the query, calculate the expected cost
-    const amount = calculatePrice(req.query)
+    // Calculate the expected cost
+    const amount = calculatePrice(req.query);
+    console.log('Calculated amount:', amount.toString());
+
     if (amount.toNumber() === 0) {
-      res.status(400).json({ error: "Can't checkout with charge of 0" })
-      return
+      res.status(400).json({ error: "Can't checkout with charge of 0" });
+      return;
     }
 
-    // We pass the reference to use in the query
-    const { reference } = req.query
+    // Extract and validate reference
+    const { reference } = req.query;
     if (!reference) {
-      res.status(400).json({ error: "No reference provided" })
-      return
+      res.status(400).json({ error: "No reference provided" });
+      return;
     }
 
-    // We pass the buyer's public key in JSON body
-    const { account } = req.body as MakeTransactionInputData
+    // Extract and validate account
+    const { account } = req.body as MakeTransactionInputData;
     if (!account) {
-      res.status(40).json({ error: "No account provided" })
-      return
+      res.status(400).json({ error: "No account provided" });
+      return;
     }
-    const buyerPublicKey = new PublicKey(account)
-    const shopPublicKey = shopAddress
 
-    const network = WalletAdapterNetwork.Devnet
-    const endpoint = clusterApiUrl(network)
-    const connection = new Connection(endpoint)
+    const buyerPublicKey = new PublicKey(account);
+    const shopPublicKey = shopAddress;
 
-    // Get details about the USDC token
-    const usdcMint = await getMint(connection, usdcAddress)
-    // Get the buyer's USDC token account address
-    const buyerUsdcAddress = await getAssociatedTokenAddress(usdcAddress, buyerPublicKey)
-    // Get the shop's USDC token account address
-    const shopUsdcAddress = await getAssociatedTokenAddress(usdcAddress, shopPublicKey)
+    const network = WalletAdapterNetwork.Devnet;
+    const endpoint = clusterApiUrl(network);
+    const connection = new Connection(endpoint);
 
-    // Get a recent blockhash to include in the transaction
-    const { blockhash } = await (connection.getLatestBlockhash('finalized'))
+    console.log('Connected to Solana endpoint:', endpoint);
+
+    // Fetch USDC mint details
+    let usdcMint;
+    try {
+      usdcMint = await getMint(connection, usdcAddress);
+      console.log('Fetched USDC mint details:', usdcMint);
+    } catch (error) {
+      console.error('Error fetching USDC mint:', error);
+      res.status(500).json({ error: "Error fetching USDC mint details" });
+      return;
+    }
+
+    // Get associated token addresses for buyer and shop
+    let buyerUsdcAddress: PublicKey;
+    let shopUsdcAddress: PublicKey;
+    try {
+      buyerUsdcAddress = await getAssociatedTokenAddress(usdcAddress, buyerPublicKey);
+      shopUsdcAddress = await getAssociatedTokenAddress(usdcAddress, shopPublicKey);
+      console.log('Buyer USDC address:', buyerUsdcAddress.toString());
+      console.log('Shop USDC address:', shopUsdcAddress.toString());
+    } catch (error) {
+      console.error('Error fetching associated token addresses:', error);
+      res.status(500).json({ error: "Error fetching associated token addresses" });
+      return;
+    }
+
+    // Fetch recent blockhash for transaction
+    let blockhash: string;
+    try {
+      ({ blockhash } = await connection.getLatestBlockhash('finalized'));
+      console.log('Fetched recent blockhash:', blockhash);
+    } catch (error) {
+      console.error('Error fetching recent blockhash:', error);
+      res.status(500).json({ error: "Error fetching recent blockhash" });
+      return;
+    }
 
     const transaction = new Transaction({
       recentBlockhash: blockhash,
-      // The buyer pays the transaction fee
       feePayer: buyerPublicKey,
-    })
+    });
 
-    // Create the instruction to send USDC from the buyer to the shop
-    const transferInstruction = createTransferCheckedInstruction(
-      buyerUsdcAddress, // source
-      usdcAddress, // mint (token address)
-      shopUsdcAddress, // destination
-      buyerPublicKey, // owner of source address
-      amount.toNumber() * (10 ** usdcMint.decimals), // amount to transfer (in units of the USDC token)
-      usdcMint.decimals, // decimals of the USDC token
-    )
+    // Create the transfer instruction
+    try {
+      const transferInstruction = createTransferCheckedInstruction(
+        buyerUsdcAddress,
+        usdcAddress,
+        shopUsdcAddress,
+        buyerPublicKey,
+        amount.toNumber() * (10 ** usdcMint.decimals),
+        usdcMint.decimals,
+      );
 
-    // Add the reference to the instruction as a key
-    // This will mean this transaction is returned when we query for the reference
-    transferInstruction.keys.push({
-      pubkey: new PublicKey(reference),
-      isSigner: false,
-      isWritable: false,
-    })
+      transferInstruction.keys.push({
+        pubkey: new PublicKey(reference),
+        isSigner: false,
+        isWritable: false,
+      });
 
-    // Add the instruction to the transaction
-    transaction.add(transferInstruction)
+      transaction.add(transferInstruction);
+    } catch (error) {
+      console.error('Error creating transfer instruction:', error);
+      res.status(500).json({ error: "Error creating transfer instruction" });
+      return;
+    }
 
-    // Serialize the transaction and convert to base64 to return it
-    const serializedTransaction = transaction.serialize({
-      // We will need the buyer to sign this transaction after it's returned to them
-      requireAllSignatures: false
-    })
-    const base64 = serializedTransaction.toString('base64')
+    // Serialize and return the transaction
+    try {
+      const serializedTransaction = transaction.serialize({
+        requireAllSignatures: false,
+      });
+      const base64 = serializedTransaction.toString('base64');
 
-    // Insert into database: reference, amount
-
-    // Return the serialized transaction
-    res.status(200).json({
-      transaction: base64,
-      message: "Thanks for your order! 🛍️",
-    })
+      res.status(200).json({
+        transaction: base64,
+        message: "Thanks for your order! 🛍️",
+      });
+    } catch (error) {
+      console.error('Error serializing transaction:', error);
+      res.status(500).json({ error: "Error serializing transaction" });
+    }
   } catch (err) {
-    console.error(err);
-
-    res.status(500).json({ error: 'error creating transaction', })
-    return
+    if (err instanceof Error) {
+      console.error('Error in creating transaction:', err.message);
+      res.status(500).json({ error: `Error creating transaction: ${err.message}` });
+    } else {
+      console.error('Unknown error occurred:', err);
+      res.status(500).json({ error: 'Unknown error occurred' });
+    }
   }
 }
 
+// The API route handler
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<MakeTransactionGetResponse | MakeTransactionOutputData | ErrorOutput>
+  res: NextApiResponse<MakeTransactionOutputData | ErrorOutput>
 ) {
   if (req.method === "GET") {
-    return get(res)
+    return get(res);
   } else if (req.method === "POST") {
-    return await post(req, res)
+    return await post(req, res);
   } else {
-    return res.status(405).json({ error: "Method not allowed" })
+    res.status(405).json({ error: "Method not allowed" });
   }
 }

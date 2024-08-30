@@ -37,6 +37,11 @@ export default function NumberInput({ name, formRef, onValueChange }: Props) {
       formRef.current?.submit();
     }
   }
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newValue = parseInt(e.target.value, 10);
+    setNumber(newValue);
+    onValueChange(newValue);
+  }
 
   return (
     <div className="w-36 border-2 border-gray-200 rounded-md flex flex-row items-center">
@@ -53,7 +58,7 @@ export default function NumberInput({ name, formRef, onValueChange }: Props) {
         type="number"
         name={name}
         value={number}
-        
+        onChange={handleChange}
         min={0}
         max={1}
         className="w-12 border-none focus:ring-0 text-center bg-gray-200"
