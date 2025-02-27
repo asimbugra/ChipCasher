@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { products } from "../lib/products";
 import NumberInput from "./NumberInput";
 
@@ -15,14 +15,14 @@ export default function Products({ submitTarget, enabled }: Props) {
     console.log("Diğer değerleri sıfırla"); // Sadece test için
   };
 
-    // className="grid grid-cols-3 gap-8" burası ürünlerin yan yana kaç adet geleceğini belirlediğimiz yer
   return (
     <form method='get' action={submitTarget} ref={formRef}>
-      <div className='flex flex-col gap-16'>
-        <div className="grid grid-cols-3 gap-8"> 
+      <div className='flex flex-col items-center gap-16'>
+        {/* Responsive grid yapısı */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center w-full max-w-screen-lg mx-auto">
           {products.map((product, index) => {
             return (
-              <div className="rounded-md bg-white text-left p-8" key={product.id}>
+              <div className="w-full sm:w-auto rounded-md bg-white text-left p-6 shadow-md hover:shadow-lg transition-shadow" key={product.id}>
                 <h3 className="text-2xl font-bold">{product.name}</h3>
                 <p className="text-sm text-gray-800">{product.description}</p>
                 <p className="my-4">
@@ -46,8 +46,9 @@ export default function Products({ submitTarget, enabled }: Props) {
           })}
         </div>
 
+        {/* Responsive buton */}
         <button
-          className="items-center px-20 rounded-md py-2 max-w-fit self-center bg-gray-900 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="items-center px-20 py-2 rounded-md max-w-fit self-center bg-gray-900 text-white hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={!enabled}
         >
           Buy
